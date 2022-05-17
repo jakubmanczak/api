@@ -7,12 +7,12 @@ app.use(bodyparser.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-	res.status(204).send("You've reached the manczakapi.");
+	res.send("You've reached the manczakapi.");
 	console.log("-- served a / response");
 });
 app.get("/remoteip", (req, res) => {
 	res.json(req.socket.remoteAddress);
-	console.log(`-- served a /remoteip response for ${ip}`);
+	console.log(`-- served a /remoteip response for ${req.socket.remoteAddress}`);
 });
 app.get("/splash", (req, res) => {
 	res.json(require("./splash.json"));
