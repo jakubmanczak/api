@@ -18,6 +18,6 @@ app.get("/remoteip", (req, res) => {
 	console.log(`-- served a /remoteip response for ${ip}`);
 });
 
-app.listen(420, () => {
-	console.log(`listening on :420`);
+app.listen(2004, () => {
+	console.log(`listening on :2004`);
 });
