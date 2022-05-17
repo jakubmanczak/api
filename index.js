@@ -18,6 +18,19 @@ app.get("/remoteip", (req, res) => {
 	console.log(`-- served a /remoteip response for ${ip}`);
 });
 
+app.get("/splash", (req, res) => {
+	res.json(require("./splash.json"));
+});
+app.get("/splash/generic", (req, res) => {
+	res.json(require("./splash.json").generic);
+});
+app.get("/splash/videogame", (req, res) => {
+	res.json(require("./splash.json").videogame);
+});
+app.get("*", (req, res) => {
+	res.status(400).send("There isn't any response provided for such path.");
+});
+
 app.listen(2004, () => {
 	console.log(`listening on :2004`);
 });
