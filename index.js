@@ -7,29 +7,15 @@ app.use(bodyparser.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-	res.send("You've reached the manczakapi.");
-	console.log("-- served a / response");
+	res.status(200).send("200: Reached the manczakapi.");
+	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
 });
-app.get("/remoteip", (req, res) => {
-	res.json(req.socket.remoteAddress);
-	console.log(`-- served a /remoteip response for ${req.socket.remoteAddress}`);
-});
-app.get("/splash", (req, res) => {
-	res.json(require("./splash.json"));
-	console.log("-- served a /splash response");
-});
-app.get("/splash/generic", (req, res) => {
-	res.json(require("./splash.json").generic);
-	console.log("-- served a /splash/generic response");
-});
-app.get("/splash/videogame", (req, res) => {
-	res.json(require("./splash.json").videogame);
-	console.log("-- served a /splash/videogame response");
-});
+
 app.get("*", (req, res) => {
-	res.status(400).send("There isn't any response provided for such path.");
+	res.status(404).send("404: No data for this path.");
+	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
 });
 
 app.listen(2004, () => {
-	console.log(`listening on :2004`);
+	console.log("listening on :2004");
 });
