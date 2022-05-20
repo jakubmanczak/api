@@ -11,6 +11,12 @@ app.get("/", (req, res) => {
 	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
 });
 
+app.get("/ip", (req, res) => {
+	let ip = req.socket.remoteAddress;
+	res.status(200).send(ip);
+	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
+});
+
 app.get("*", (req, res) => {
 	res.status(404).send("404: No data for this path.");
 	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
