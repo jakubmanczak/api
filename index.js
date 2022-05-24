@@ -1,6 +1,9 @@
 const express = require("express");
 const bodyparser = require("body-parser");
 const cors = require("cors");
+require("dotenv").config();
+
+const port = process.env.port || 2004;
 
 const app = express();
 app.use(bodyparser.json());
@@ -22,6 +25,6 @@ app.get("*", (req, res) => {
 	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
 });
 
-app.listen(2004, () => {
-	console.log("listening on :2004");
+app.listen(port, () => {
+	console.log(`listening on :${port}`);
 });
