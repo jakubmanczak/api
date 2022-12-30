@@ -1,27 +1,27 @@
-const express = require("express");
-const bodyparser = require("body-parser");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 require("dotenv").config();
 
-const port = process.env.port || 2004;
+import splashjson from "./data/splash.json";
 
+const port = process.env.PORT || 2004;
 const app = express();
-app.use(bodyparser.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
 	res.status(200).send("200: Reached the manczakapi.");
 	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
 });
-
-app.get("/ip", (req, res) => {
-	let ip = req.socket.remoteAddress;
-	res.status(200).send(ip);
+app.get("/splash", (req, res) => {
+	res
+		.status(200)
+		.send(
+			splashjson.generic[Math.floor(Math.random() * splashjson.generic.length)]
+		);
 	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
 });
-
 app.get("*", (req, res) => {
-	res.status(404).send("404: No data for this path.");
+	res.status(404).send("404: Reached the manczakapi.");
 	console.log(`---- served a ${res.statusCode} for: ${req.path}`);
 });
 
