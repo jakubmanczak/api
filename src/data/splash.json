@@ -1,14 +1,15 @@
 {
-	"generic": [
+	"generic": ["Turn your head and cough."],
+	"personal": [
 		"featherless biped",
 		"the installation wizard",
 		"racoon personification"
 	],
 	"videogame": [
-		"Slime is falling from the sky!",
-		"You feel an evil presence around you...",
-		"Get mad! Don't make lemonade!",
-		"This Black Mesa Announcement System now under military command.",
-		"Aw man, ya cut the ponytail..."
-	]
+		"Featuring: combustible lemons!",
+		"Featuring: fox-like biology!",
+		"NOW. UNDER. MILITARY. COMMAND.",
+		"I see the player you mean."
+	],
+	"music": ["She sells seashells, sell oil as well!"]
 }
