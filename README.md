@@ -5,3 +5,5 @@
 * use `npm run serve` to serve the api.
 
 The endpoints are documented on the repository's [wiki page](https://github.com/jakubmanczak/api/wiki).
+
+The API is available publicly at `https://api.manczak.net/`.
