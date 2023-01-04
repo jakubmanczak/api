@@ -1,5 +1,4 @@
 {
-	"generic": ["Turn your head and cough."],
 	"personal": [
 		"featherless biped",
 		"the installation wizard",
@@ -7,11 +6,16 @@
 		"マニチャキュ・ヤクブ",
 		"IT High Student"
 	],
-	"videogame": [
+	"generic": [
+		"Turn you head and cough.",
+		"Wear a mask when ill.",
+		"Be kind..",
+		"Vote."
+	],
+	"games": [
 		"Featuring: combustible lemons!",
 		"Featuring: fox-like biology!",
 		"NOW. UNDER. MILITARY. COMMAND.",
 		"I see the player you mean."
-	],
-	"music": ["She sells seashells, sell oil as well!"]
+	]
 }
