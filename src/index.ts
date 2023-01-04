@@ -20,6 +20,9 @@ app.get("/splash", (req, res) => {
 	if (splsh.length === 0) {
 		splsh.push(...splshjson.generic, ...splshjson.games);
 	}
+	if (req.query["all"] !== undefined) {
+		return res.status(200).send(splsh);
+	}
 	res.status(200).send(splsh[Math.floor(Math.random() * splsh.length)]);
 });
 
