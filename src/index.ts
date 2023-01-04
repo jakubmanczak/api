@@ -20,6 +20,11 @@ app.get("/splash", (req, res) => {
 	if (splsh.length === 0) {
 		splsh.push(...splshjson.generic, ...splshjson.games);
 	}
+	if (req.query["maxlength"]) {
+		splsh = splsh.filter((el: string) => {
+			return el.length <= parseInt(req.query["maxlength"] as string);
+		});
+	}
 	if (req.query["all"] !== undefined) {
 		return res.status(200).send(splsh);
 	}
