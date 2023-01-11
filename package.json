@@ -4,9 +4,10 @@
 	"description": "",
 	"main": "dist/index.js",
 	"scripts": {
-		"start": "tsc && node .",
+		"start": "tsc && npm run copydata && node .",
 		"build": "tsc",
 		"serve": "node .",
+		"copydata": "rsync -a --delete ./src/data/ ./dist/data/",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {

@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 require("dotenv").config();
 
 import splshjson from "./data/splash.json";
@@ -29,6 +30,12 @@ app.get("/splash", (req, res) => {
 		return res.status(200).send(splsh);
 	}
 	res.status(200).send(splsh[Math.floor(Math.random() * splsh.length)]);
+});
+
+app.get("/github-profile-readme-img", (req, res) => {
+	res.sendFile("./data/github.jpg", {
+		root: path.join(__dirname),
+	});
 });
 
 app.get("*", (req, res) => {
