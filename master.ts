@@ -7,38 +7,38 @@ const r = new Router();
 const dbpath = "../manczak.db";
 
 app.addEventListener("listen", () => {
-	console.log("Running.");
+  console.log("Running.");
 });
 
 r.get("/", (ctx) => {
-	let res = "200 (OK). Available endpoints:";
-	r.forEach((el) => {
-		res = res.concat("\n", el.methods.toString(), ": ", el.path);
-	});
-	ctx.response.body = res;
+  let res = "200 (OK). Available endpoints:";
+  r.forEach((el) => {
+    res = res.concat("\n", el.methods.toString(), ": ", el.path);
+  });
+  ctx.response.body = res;
 });
 
 r.get("/splash", (ctx) => {
-	const db = new DB(dbpath);
-	for (const [splash] of db.query(`
+  const db = new DB(dbpath);
+  for (const [splash] of db.query(`
     SELECT splash FROM splashes
     ORDER BY RANDOM() LIMIT 1
   `)) {
-		ctx.response.body = splash as string;
-	}
-	db.close();
+    ctx.response.body = splash as string;
+  }
+  db.close();
 });
 
 r.get("/splashes", (ctx) => {
-	const db = new DB(dbpath);
-	const res: string[] = [];
-	for (const [splash] of db.query(
-		`SELECT splash FROM splashes ORDER BY splashid`
-	)) {
-		res.push(splash as string);
-	}
-	ctx.response.body = res;
-	db.close();
+  const db = new DB(dbpath);
+  const res: string[] = [];
+  for (const [splash] of db.query(
+    `SELECT splash FROM splashes ORDER BY splashid`
+  )) {
+    res.push(splash as string);
+  }
+  ctx.response.body = res;
+  db.close();
 });
 
 app.use(oakCors());
