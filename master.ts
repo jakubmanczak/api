@@ -6,6 +6,28 @@ const app = new Application();
 const r = new Router();
 const dbpath = "../manczak.db";
 
+const db = new DB(dbpath);
+db.execute(`
+  CREATE TABLE IF NOT EXISTS splashes (
+    splashid BLOB NOT NULL DEFAULT 'replace with ulid' UNIQUE,
+    splash TEXT NOT NULL,
+    PRIMARY KEY("splashid")
+  );
+`);
+// in this case, "secured" is an integer wherein
+// 0: unprotected,      1: read protected
+// 2: write protected,  3: read&write protected
+db.execute(`
+  CREATE TABLE IF NOT EXISTS vars (
+    id TEXT NOT NULL DEFAULT 'replace with ulid' UNIQUE,
+    secured INTEGER NOT NULL DEFAULT 0,
+    varname BLOB NOT NULL DEFAULT 'replace with var name' UNIQUE,
+    varbody BLOB NOT NULL,
+    PRIMARY KEY("id")
+  );
+`);
+db.close();
+
 app.addEventListener("listen", () => {
   console.log("Running.");
 });
