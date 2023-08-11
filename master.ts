@@ -21,8 +21,8 @@ db.execute(`
   CREATE TABLE IF NOT EXISTS vars (
     id TEXT NOT NULL DEFAULT 'replace with ulid' UNIQUE,
     secured INTEGER NOT NULL DEFAULT 0,
-    varname BLOB NOT NULL DEFAULT 'replace with var name' UNIQUE,
-    varbody BLOB NOT NULL,
+    varname TEXT NOT NULL DEFAULT 'replace with var name' UNIQUE,
+    varbody BLOB,
     PRIMARY KEY("id")
   );
 `);
