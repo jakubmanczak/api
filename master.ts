@@ -67,3 +67,6 @@ app.use(oakCors());
 app.use(r.routes());
 app.use(r.allowedMethods());
 await app.listen({ port: 2004 });
+// TODO: figure out how to host this on default ports
+// automatically and find an unoccupied one automatically,
+// as well as report it
