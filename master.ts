@@ -56,13 +56,13 @@ r.get("/splash/:id", (ctx) => {
   const query = db.prepareQuery(
     "SELECT splash FROM splashes WHERE splashid = :id"
   );
-  const [qres] = query.one({ id: ctx.params.id });
+  const qres = query.first({ id: ctx.params.id });
   query.finalize();
   db.close();
   if (qres) {
-    ctx.response.body = qres;
+    ctx.response.body = qres[0] as string;
   } else {
-    ctx.response.status = 400;
+    ctx.response.status = 404;
     ctx.response.body = `No splash with id ${ctx.params.id}`;
   }
 });
