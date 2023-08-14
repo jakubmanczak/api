@@ -51,13 +51,29 @@ r.get("/splash", (ctx) => {
   db.close();
 });
 
+r.get("/splash/:id", (ctx) => {
+  const db = new DB(dbpath);
+  const query = db.prepareQuery(
+    "SELECT splash FROM splashes WHERE splashid = :id"
+  );
+  const [qres] = query.one({ id: ctx.params.id });
+  query.finalize();
+  db.close();
+  if (qres) {
+    ctx.response.body = qres;
+  } else {
+    ctx.response.status = 400;
+    ctx.response.body = `No splash with id ${ctx.params.id}`;
+  }
+});
+
 r.get("/splashes", (ctx) => {
   const db = new DB(dbpath);
-  const res: string[] = [];
-  for (const [splash] of db.query(
-    `SELECT splash FROM splashes ORDER BY splashid`
+  const res: { id: string; splash: string }[] = [];
+  for (const [id, splash] of db.query(
+    `SELECT * FROM splashes ORDER BY splashid`
   )) {
-    res.push(splash as string);
+    res.push({ id: id as string, splash: splash as string });
   }
   ctx.response.body = res;
   db.close();
