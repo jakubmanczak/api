@@ -1,2 +1,3 @@
 /target
-manczak.db
+.DS_Store
+.env
