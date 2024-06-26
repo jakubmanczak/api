@@ -15,7 +15,13 @@ pub fn initialise_logging() {
 pub fn initialise_dotenv() {
     match dotenvy::dotenv() {
         Ok(_) => info!("loaded .env"),
-        Err(e) => error!("error while loading .env: {e}"),
+        Err(e) => {
+            if e.not_found() {
+                trace!(".env file not found; skipping...");
+            } else {
+                error!("error while loading .env: {e}");
+            }
+        }
     };
 }
 
