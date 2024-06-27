@@ -6,4 +6,6 @@ COPY . .
 
 EXPOSE 2004
 
-CMD ["cargo", "run", "-r"]
+RUN cargo build -r
+
+CMD cargo run -r
