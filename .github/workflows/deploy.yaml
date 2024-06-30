@@ -1,0 +1,18 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build image
+        run: docker build -t rustapi .
+      - name: Run image
+        run: |
+          docker stop rustapi || true
+          docker rm rustapi || true
+          docker run -d -p 2004:2004 --name rustapi --restart always rustapi
