@@ -1,9 +1,11 @@
 use axum::{http::StatusCode, routing::get, Router};
 
 pub fn route() -> Router {
-    Router::new().route("/health", get(health()))
+    Router::new()
+        .route("/live", get(empty()))
+        .route("/health", get(empty()))
 }
 
-fn health() -> StatusCode {
+fn empty() -> StatusCode {
     StatusCode::OK
 }

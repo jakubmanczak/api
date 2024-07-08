@@ -1,6 +1,7 @@
 mod routes;
 mod setup;
 use axum::Router;
+use routes::routes;
 use tokio::net::TcpListener;
 use tracing::{error, info};
 
@@ -10,9 +11,7 @@ async fn main() {
     setup::initialise_dotenv();
     setup::initialise_sqlite_db_tables();
 
-    let app = Router::new()
-        .merge(routes::health::route())
-        .merge(routes::splash::randsplash_route());
+    let app = Router::new().merge(routes());
 
     let addr = setup::get_socket_addr();
     let listener = match TcpListener::bind(&addr).await {
