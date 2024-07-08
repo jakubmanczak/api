@@ -1,3 +1,4 @@
+use sqlite::Connection;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use tokio::net::TcpListener;
 use tracing::Level;
@@ -23,6 +24,27 @@ pub fn initialise_dotenv() {
             }
         }
     };
+}
+pub fn initialise_sqlite_connection() -> Connection {
+    let conn = match sqlite::open("sqlite.db") {
+        Ok(conn) => conn,
+        Err(e) => {
+            error!("error establishing sqlite db connection: {e}");
+            panic!();
+        }
+    };
+    return conn;
+}
+
+pub fn initialise_sqlite_db_tables() {
+    let conn = initialise_sqlite_connection();
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS splashes (
+            id      TEXT NOT NULL UNIQUE PRIMARY KEY,
+            splash  TEXT NOT NULL
+        )",
+    )
+    .unwrap();
 }
 
 fn get_port() -> u16 {
