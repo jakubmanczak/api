@@ -24,11 +24,5 @@ async fn main() {
     let addr = setup::get_listener_socket_addr(&listener);
     info!("listener socket addr is {}", addr.to_string());
 
-    match axum::serve(listener, app).await {
-        Ok(..) => info!("now serving!"),
-        Err(e) => {
-            error!("axum could not serve listener & app: {e}");
-            panic!();
-        }
-    }
+    axum::serve(listener, app).await.unwrap();
 }
