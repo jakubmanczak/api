@@ -1,3 +1,4 @@
 jakubmanczak/api
 ----------------
 
+* requires a docker volume named sqlite to be mounted on /sqlite for the database file

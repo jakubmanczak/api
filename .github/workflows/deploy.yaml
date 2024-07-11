@@ -15,4 +15,4 @@ jobs:
         run: |
           docker stop rustapi || true
           docker rm rustapi || true
-          docker run -d -p 2004:2004 --name rustapi --restart always rustapi
+          docker run -d -p 2004:2004 -v sqlite:/sqlite -e DBPATH=/sqlite/sqlite.db --name rustapi --restart always rustapi
