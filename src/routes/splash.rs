@@ -19,6 +19,7 @@ pub fn route() -> Router {
 }
 
 static NO_SPLASHES: &str = "No splashes found.";
+static NO_SUCH_SPLASH: &str = "No such splash found.";
 
 #[derive(Serialize)]
 struct Splash {
@@ -79,7 +80,7 @@ async fn particular_splash(Path(id): Path<String>) -> Response {
 
     match statement.next() {
         Ok(State::Row) => (),
-        Ok(State::Done) => return (StatusCode::NOT_FOUND).into_response(),
+        Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SUCH_SPLASH).into_response(),
         Err(e) => {
             error!("Error on statement.next() /splash/{id} -> {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
