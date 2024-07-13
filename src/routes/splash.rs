@@ -29,24 +29,21 @@ struct Splash {
 
 async fn random_splash() -> Response {
     let conn = setup::initialise_sqlite_connection();
-    let query = "SELECT * FROM splashes ORDER BY RANDOM() LIMIT 1";
+    let query = "SELECT splash FROM splashes ORDER BY RANDOM() LIMIT 1";
 
     let mut statement = conn.prepare(query).unwrap();
 
     match statement.next() {
-        Ok(State::Row) => (),
+        Ok(State::Row) => {
+            let splash: String = statement.read("splash").unwrap();
+            return splash.into_response();
+        }
         Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
         Err(e) => {
             error!("Error on statement.next() /splash -> {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
-
-    let splash = Splash {
-        id: statement.read("id").unwrap(),
-        splash: statement.read("splash").unwrap(),
-    };
-    return Json(splash).into_response();
 }
 
 async fn random_splash_json() -> Response {
