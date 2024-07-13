@@ -1,12 +1,14 @@
 use axum::Router;
 
-pub mod health;
-pub mod splash;
-pub mod teapot;
+mod health;
+mod splash;
+mod teapot;
+mod version;
 
 pub fn routes() -> Router {
     Router::new()
         .merge(health::route())
         .merge(splash::route())
         .merge(teapot::route())
+        .merge(version::route())
 }
