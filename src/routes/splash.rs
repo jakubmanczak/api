@@ -1,21 +1,24 @@
 use crate::setup;
 use axum::{
+    extract::Path,
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sqlite::State;
+use tracing::error;
 
 pub fn route() -> Router {
     Router::new()
         .route("/splash", get(random_splash))
+        .route("/splash/:id", get(particular_splash))
         .route("/splash-json", get(random_splash_json))
         .route("/splashes", get(all_splashes))
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 struct Splash {
     id: String,
     splash: String,
@@ -49,6 +52,29 @@ async fn random_splash_json() -> Response {
     }
 
     return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+}
+
+async fn particular_splash(Path(id): Path<String>) -> Response {
+    let conn = setup::initialise_sqlite_connection();
+    let query = "SELECT * FROM splashes WHERE id = :id";
+
+    let mut statement = conn.prepare(query).unwrap();
+    statement.bind((":id", id.as_str())).unwrap();
+
+    match statement.next() {
+        Ok(State::Row) => (),
+        Ok(State::Done) => return (StatusCode::NOT_FOUND).into_response(),
+        Err(e) => {
+            error!("Error on statement.next() /splash/{id} -> {e}");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
+
+    let splash = Splash {
+        id: statement.read("id").unwrap(),
+        splash: statement.read("splash").unwrap(),
+    };
+    return Json(splash).into_response();
 }
 
 async fn all_splashes() -> Response {
