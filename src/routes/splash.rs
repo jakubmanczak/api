@@ -18,23 +18,34 @@ pub fn route() -> Router {
         .route("/splashes", get(all_splashes))
 }
 
+static NO_SPLASHES: &str = "No splashes found.";
+
 #[derive(Serialize)]
 struct Splash {
     id: String,
     splash: String,
 }
 
-async fn random_splash() -> (StatusCode, String) {
+async fn random_splash() -> Response {
     let conn = setup::initialise_sqlite_connection();
     let query = "SELECT splash FROM splashes ORDER BY RANDOM() LIMIT 1";
 
     let mut statement = conn.prepare(query).unwrap();
 
-    while let Ok(State::Row) = statement.next() {
-        return (StatusCode::OK, statement.read::<String, _>(0).unwrap());
+    match statement.next() {
+        Ok(State::Row) => (),
+        Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
+        Err(e) => {
+            error!("Error on statement.next() /splash -> {e}");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
     }
 
-    return (StatusCode::INTERNAL_SERVER_ERROR, "".to_owned());
+    let splash = Splash {
+        id: statement.read("id").unwrap(),
+        splash: statement.read("splash").unwrap(),
+    };
+    return Json(splash).into_response();
 }
 
 async fn random_splash_json() -> Response {
@@ -43,15 +54,20 @@ async fn random_splash_json() -> Response {
 
     let mut statement = conn.prepare(query).unwrap();
 
-    while let Ok(State::Row) = statement.next() {
-        let splash = Splash {
-            id: statement.read::<String, _>("id").unwrap(),
-            splash: statement.read::<String, _>("splash").unwrap(),
-        };
-        return Json(splash).into_response();
+    match statement.next() {
+        Ok(State::Row) => (),
+        Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
+        Err(e) => {
+            error!("Error on statement.next() /splash-json -> {e}");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
     }
 
-    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+    let splash = Splash {
+        id: statement.read("id").unwrap(),
+        splash: statement.read("splash").unwrap(),
+    };
+    return Json(splash).into_response();
 }
 
 async fn particular_splash(Path(id): Path<String>) -> Response {
@@ -84,16 +100,22 @@ async fn all_splashes() -> Response {
     let mut statement = conn.prepare(query).unwrap();
     let mut splashes: Vec<Splash> = Vec::new();
 
-    while let Ok(State::Row) = statement.next() {
+    loop {
+        match statement.next() {
+            Ok(State::Row) => (),
+            Ok(State::Done) => match splashes.is_empty() {
+                true => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
+                false => return Json(splashes).into_response(),
+            },
+            Err(e) => {
+                error!("Error on statement.next() /splashes -> {e}");
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+            }
+        }
+
         splashes.push(Splash {
-            id: statement.read::<String, _>("id").unwrap(),
-            splash: statement.read::<String, _>("splash").unwrap(),
+            id: statement.read("id").unwrap(),
+            splash: statement.read("splash").unwrap(),
         });
     }
-
-    if !splashes.is_empty() {
-        return Json(splashes).into_response();
-    }
-
-    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
 }
