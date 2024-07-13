@@ -29,7 +29,7 @@ struct Splash {
 
 async fn random_splash() -> Response {
     let conn = setup::initialise_sqlite_connection();
-    let query = "SELECT splash FROM splashes ORDER BY RANDOM() LIMIT 1";
+    let query = "SELECT * FROM splashes ORDER BY RANDOM() LIMIT 1";
 
     let mut statement = conn.prepare(query).unwrap();
 
