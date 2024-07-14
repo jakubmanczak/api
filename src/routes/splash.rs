@@ -14,7 +14,10 @@ pub fn route() -> Router {
     Router::new()
         .route("/splash", get(random_splash))
         .route("/splash/:id", get(particular_splash))
+        .route("/splash/id/:id", get(particular_splash))
         .route("/splash-json", get(random_splash_json))
+        .route("/splash/json", get(random_splash_json))
+        .route("/splash/all", get(all_splashes))
         .route("/splashes", get(all_splashes))
 }
 
@@ -53,19 +56,19 @@ async fn random_splash_json() -> Response {
     let mut statement = conn.prepare(query).unwrap();
 
     match statement.next() {
-        Ok(State::Row) => (),
+        Ok(State::Row) => {
+            return Json(Splash {
+                id: statement.read("id").unwrap(),
+                splash: statement.read("splash").unwrap(),
+            })
+            .into_response()
+        }
         Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
         Err(e) => {
             error!("Error on statement.next() /splash-json -> {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
-
-    let splash = Splash {
-        id: statement.read("id").unwrap(),
-        splash: statement.read("splash").unwrap(),
-    };
-    return Json(splash).into_response();
 }
 
 async fn particular_splash(Path(id): Path<String>) -> Response {
@@ -76,19 +79,19 @@ async fn particular_splash(Path(id): Path<String>) -> Response {
     statement.bind((":id", id.as_str())).unwrap();
 
     match statement.next() {
-        Ok(State::Row) => (),
+        Ok(State::Row) => {
+            return Json(Splash {
+                id: statement.read("id").unwrap(),
+                splash: statement.read("splash").unwrap(),
+            })
+            .into_response()
+        }
         Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SUCH_SPLASH).into_response(),
         Err(e) => {
-            error!("Error on statement.next() /splash/{id} -> {e}");
+            error!("Error on statement.next() /splash/id/{id} -> {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
-
-    let splash = Splash {
-        id: statement.read("id").unwrap(),
-        splash: statement.read("splash").unwrap(),
-    };
-    return Json(splash).into_response();
 }
 
 async fn all_splashes() -> Response {
@@ -100,20 +103,18 @@ async fn all_splashes() -> Response {
 
     loop {
         match statement.next() {
-            Ok(State::Row) => (),
+            Ok(State::Row) => splashes.push(Splash {
+                id: statement.read("id").unwrap(),
+                splash: statement.read("splash").unwrap(),
+            }),
             Ok(State::Done) => match splashes.is_empty() {
                 true => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
                 false => return Json(splashes).into_response(),
             },
             Err(e) => {
-                error!("Error on statement.next() /splashes -> {e}");
+                error!("Error on statement.next() /splash/all -> {e}");
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
         }
-
-        splashes.push(Splash {
-            id: statement.read("id").unwrap(),
-            splash: statement.read("splash").unwrap(),
-        });
     }
 }
