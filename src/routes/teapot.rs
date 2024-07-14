@@ -6,6 +6,8 @@ pub fn route() -> Router {
         .route("/brew", get(refuse_to_brew_coffee()))
 }
 
-fn refuse_to_brew_coffee() -> StatusCode {
-    StatusCode::IM_A_TEAPOT
+static TEAPOT_RESPONSE: &str = "I'm a teapot.";
+
+fn refuse_to_brew_coffee() -> (StatusCode, &'static str) {
+    (StatusCode::IM_A_TEAPOT, TEAPOT_RESPONSE)
 }
