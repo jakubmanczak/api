@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build image
-        run: docker build -t rustapi .
+        run: docker build -t rustapi --build-arg GITHUB_SHA=${{ github.sha }} .
       - name: Run image
         run: |
           docker stop rustapi || true
