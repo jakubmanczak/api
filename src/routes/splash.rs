@@ -58,11 +58,11 @@ async fn splash(Query(params): Query<SplashGetParams>) -> Response {
             }
         },
         Ok(State::Done) => {
-            info!("No splashes could be returned from /splash - none in database.");
+            info!("No splashes could be returned from GET /splash - none in database.");
             return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response();
         }
         Err(e) => {
-            error!("Returned 500 in /splash due to error: {e}");
+            error!("Returned 500 in GET /splash due to error: {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
@@ -84,7 +84,7 @@ async fn splash_by_id(Path(id): Path<String>) -> Response {
         }
         Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SUCH_SPLASH).into_response(),
         Err(e) => {
-            error!("Returned 500 in /splashes/:id due to error: {e}");
+            error!("Returned 500 in GET /splashes/:id due to error: {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
@@ -108,7 +108,7 @@ async fn splashes() -> Response {
                 false => return Json(splashes).into_response(),
             },
             Err(e) => {
-                error!("Returned 500 in /splashes due to error: {e}");
+                error!("Returned 500 in GET /splashes due to error: {e}");
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
         }
