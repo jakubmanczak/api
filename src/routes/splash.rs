@@ -1,28 +1,24 @@
 use crate::setup;
 use axum::{
-    extract::Path,
+    extract::{Path, Query},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlite::State;
-use tracing::error;
+use tracing::{error, info};
 
 pub fn route() -> Router {
     Router::new()
-        .route("/splash", get(random_splash))
-        .route("/splash/:id", get(particular_splash))
-        .route("/splash/id/:id", get(particular_splash))
-        .route("/splash-json", get(random_splash_json))
-        .route("/splash/json", get(random_splash_json))
-        .route("/splash/all", get(all_splashes))
-        .route("/splashes", get(all_splashes))
+        .route("/splash", get(splash))
+        .route("/splashes", get(splashes))
+        .route("/splashes/:id", get(splash_by_id))
 }
 
-static NO_SPLASHES: &str = "No splashes found.";
-static NO_SUCH_SPLASH: &str = "No such splash found.";
+pub static NO_SPLASHES: &str = "No splashes found.";
+pub static NO_SUCH_SPLASH: &str = "No such splash found.";
 
 #[derive(Serialize)]
 struct Splash {
@@ -30,51 +26,51 @@ struct Splash {
     splash: String,
 }
 
-async fn random_splash() -> Response {
-    let conn = setup::initialise_sqlite_connection();
-    let query = "SELECT splash FROM splashes ORDER BY RANDOM() LIMIT 1";
-
-    let mut statement = conn.prepare(query).unwrap();
-
-    match statement.next() {
-        Ok(State::Row) => {
-            let splash: String = statement.read("splash").unwrap();
-            return splash.into_response();
-        }
-        Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
-        Err(e) => {
-            error!("Error on statement.next() /splash -> {e}");
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
-    }
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "lowercase")]
+enum ReturnFormat {
+    PlainText,
+    Json,
 }
 
-async fn random_splash_json() -> Response {
+#[derive(Deserialize, Debug)]
+struct SplashGetParams {
+    format: Option<ReturnFormat>,
+}
+
+async fn splash(Query(params): Query<SplashGetParams>) -> Response {
     let conn = setup::initialise_sqlite_connection();
     let query = "SELECT * FROM splashes ORDER BY RANDOM() LIMIT 1";
-
     let mut statement = conn.prepare(query).unwrap();
 
     match statement.next() {
-        Ok(State::Row) => {
-            return Json(Splash {
-                id: statement.read("id").unwrap(),
-                splash: statement.read("splash").unwrap(),
-            })
-            .into_response()
+        Ok(State::Row) => match params.format {
+            Some(ReturnFormat::Json) => {
+                return Json(Splash {
+                    id: statement.read("id").unwrap(),
+                    splash: statement.read("splash").unwrap(),
+                })
+                .into_response()
+            }
+            Some(ReturnFormat::PlainText) | None => {
+                let splash: String = statement.read("splash").unwrap();
+                return splash.into_response();
+            }
+        },
+        Ok(State::Done) => {
+            info!("No splashes could be returned from /splash - none in database.");
+            return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response();
         }
-        Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SPLASHES).into_response(),
         Err(e) => {
-            error!("Error on statement.next() /splash-json -> {e}");
+            error!("Returned 500 in /splash due to error: {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
 }
 
-async fn particular_splash(Path(id): Path<String>) -> Response {
+async fn splash_by_id(Path(id): Path<String>) -> Response {
     let conn = setup::initialise_sqlite_connection();
     let query = "SELECT * FROM splashes WHERE id = :id";
-
     let mut statement = conn.prepare(query).unwrap();
     statement.bind((":id", id.as_str())).unwrap();
 
@@ -88,19 +84,19 @@ async fn particular_splash(Path(id): Path<String>) -> Response {
         }
         Ok(State::Done) => return (StatusCode::NOT_FOUND, NO_SUCH_SPLASH).into_response(),
         Err(e) => {
-            error!("Error on statement.next() /splash/id/{id} -> {e}");
+            error!("Returned 500 in /splashes/:id due to error: {e}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
-    };
+    }
 }
 
-async fn all_splashes() -> Response {
+async fn splashes() -> Response {
     let conn = setup::initialise_sqlite_connection();
-    let query = "SELECT * FROM splashes";
-
+    let query = "SELECT * FROM splashes LIMIT :limit";
     let mut statement = conn.prepare(query).unwrap();
-    let mut splashes: Vec<Splash> = Vec::new();
+    statement.bind((":limit", 200)).unwrap();
 
+    let mut splashes: Vec<Splash> = Vec::new();
     loop {
         match statement.next() {
             Ok(State::Row) => splashes.push(Splash {
@@ -112,7 +108,7 @@ async fn all_splashes() -> Response {
                 false => return Json(splashes).into_response(),
             },
             Err(e) => {
-                error!("Error on statement.next() /splash/all -> {e}");
+                error!("Returned 500 in /splashes due to error: {e}");
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
         }
