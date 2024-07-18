@@ -1,4 +1,4 @@
-use crate::setup;
+use crate::database;
 use axum::{
     extract::{Path, Query},
     http::StatusCode,
@@ -39,7 +39,7 @@ struct SplashGetParams {
 }
 
 async fn splash(Query(params): Query<SplashGetParams>) -> Response {
-    let conn = setup::initialise_sqlite_connection();
+    let conn = database::initialise_sqlite_connection();
     let query = "SELECT * FROM splashes ORDER BY RANDOM() LIMIT 1";
     let mut statement = conn.prepare(query).unwrap();
 
@@ -69,7 +69,7 @@ async fn splash(Query(params): Query<SplashGetParams>) -> Response {
 }
 
 async fn splash_by_id(Path(id): Path<String>) -> Response {
-    let conn = setup::initialise_sqlite_connection();
+    let conn = database::initialise_sqlite_connection();
     let query = "SELECT * FROM splashes WHERE id = :id";
     let mut statement = conn.prepare(query).unwrap();
     statement.bind((":id", id.as_str())).unwrap();
@@ -91,7 +91,7 @@ async fn splash_by_id(Path(id): Path<String>) -> Response {
 }
 
 async fn splashes() -> Response {
-    let conn = setup::initialise_sqlite_connection();
+    let conn = database::initialise_sqlite_connection();
     let query = "SELECT * FROM splashes LIMIT :limit";
     let mut statement = conn.prepare(query).unwrap();
     statement.bind((":limit", 200)).unwrap();

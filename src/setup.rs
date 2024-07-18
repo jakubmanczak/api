@@ -1,10 +1,10 @@
-use sqlite::Connection;
-use std::env;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use tokio::net::TcpListener;
 use tracing::Level;
 use tracing::{error, info, trace};
 use tracing_subscriber::FmtSubscriber;
+
+use crate::database;
 
 pub fn initialise_logging() {
     let subscriber = FmtSubscriber::builder()
@@ -27,23 +27,8 @@ pub fn initialise_dotenv() {
     };
 }
 
-pub fn initialise_sqlite_connection() -> Connection {
-    let path = match env::var("DBPATH") {
-        Ok(env) => env,
-        Err(_) => "sqlite.db".to_owned(),
-    };
-    let conn = match sqlite::open(path) {
-        Ok(conn) => conn,
-        Err(e) => {
-            error!("error establishing sqlite db connection: {e}");
-            panic!();
-        }
-    };
-    return conn;
-}
-
 pub fn initialise_sqlite_db_tables() {
-    let conn = initialise_sqlite_connection();
+    let conn = database::initialise_sqlite_connection();
     conn.execute(
         "CREATE TABLE IF NOT EXISTS splashes (
             id      TEXT NOT NULL UNIQUE PRIMARY KEY,

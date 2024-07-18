@@ -1,3 +1,4 @@
+mod database;
 mod routes;
 mod setup;
 use axum::Router;
