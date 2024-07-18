@@ -36,12 +36,30 @@ enum ReturnFormat {
 #[derive(Deserialize, Debug)]
 struct SplashGetParams {
     format: Option<ReturnFormat>,
+    exclude_id: Option<String>,
 }
 
 async fn splash(Query(params): Query<SplashGetParams>) -> Response {
     let conn = database::initialise_sqlite_connection();
-    let query = "SELECT * FROM splashes ORDER BY RANDOM() LIMIT 1";
-    let mut statement = conn.prepare(query).unwrap();
+    let mut statement = match params.exclude_id {
+        Some(eid) => {
+            let eid = eid.as_str();
+            let q = "
+                SELECT * FROM splashes
+                WHERE id != :exclude_id
+                ORDER BY RANDOM() LIMIT 1";
+            let mut statement = conn.prepare(q).unwrap();
+            statement.bind((":exclude_id", eid)).unwrap();
+
+            statement
+        }
+        None => {
+            let q = "SELECT * FROM splashes ORDER BY RANDOM() LIMIT 1";
+            let statement = conn.prepare(q).unwrap();
+
+            statement
+        }
+    };
 
     match statement.next() {
         Ok(State::Row) => match params.format {
