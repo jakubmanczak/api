@@ -1,3 +1,4 @@
+mod auth;
 mod database;
 mod routes;
 mod setup;
@@ -11,7 +12,7 @@ use tracing::{error, info};
 async fn main() {
     setup::initialise_logging();
     setup::initialise_dotenv();
-    setup::initialise_sqlite_db_tables();
+    database::execute_migration_queries();
 
     let app = Router::new()
         .merge(routes())

@@ -9,7 +9,7 @@ mod version;
 
 pub fn routes() -> Router {
     Router::new()
-        .merge(argon::route())
+        // .merge(argon::route())
         .merge(health::route())
         .merge(root::route())
         .merge(splash::route())

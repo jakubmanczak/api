@@ -17,3 +17,22 @@ pub fn initialise_sqlite_connection() -> Connection {
     };
     return conn;
 }
+
+pub fn execute_migration_queries() {
+    let conn = initialise_sqlite_connection();
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS splashes (
+                id      TEXT NOT NULL UNIQUE PRIMARY KEY,
+                splash  TEXT NOT NULL
+            )",
+    )
+    .unwrap();
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS users (
+                id      TEXT NOT NULL UNIQUE PRIMARY KEY,
+                name    TEXT NOT NULL UNIQUE,
+                pass    TEXT NOT NULL
+        )",
+    )
+    .unwrap();
+}

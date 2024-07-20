@@ -4,8 +4,6 @@ use tracing::Level;
 use tracing::{error, info, trace};
 use tracing_subscriber::FmtSubscriber;
 
-use crate::database;
-
 pub fn initialise_logging() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
@@ -25,17 +23,6 @@ pub fn initialise_dotenv() {
             }
         }
     };
-}
-
-pub fn initialise_sqlite_db_tables() {
-    let conn = database::initialise_sqlite_connection();
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS splashes (
-            id      TEXT NOT NULL UNIQUE PRIMARY KEY,
-            splash  TEXT NOT NULL
-        )",
-    )
-    .unwrap();
 }
 
 fn get_port() -> u16 {

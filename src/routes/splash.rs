@@ -1,20 +1,27 @@
-use crate::database;
+use crate::{
+    auth::{get_basic_auth_from_headers, validate_password_hash_from_basic_auth},
+    database,
+};
 use axum::{
     extract::{Path, Query},
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
-    routing::get,
+    routing::{get, post},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use sqlite::State;
 use tracing::{error, info};
+use ulid::Ulid;
 
 pub fn route() -> Router {
     Router::new()
+        // GET
         .route("/splash", get(splash))
         .route("/splashes", get(splashes))
         .route("/splashes/:id", get(splash_by_id))
+        // POST
+        .route("/splashes", post(splashes_post))
 }
 
 pub static NO_SPLASHES: &str = "No splashes found.";
@@ -129,6 +136,44 @@ async fn splashes() -> Response {
                 error!("Returned 500 in GET /splashes due to error: {e}");
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct CreateSplash {
+    splash: String,
+}
+
+async fn splashes_post(headers: HeaderMap, Json(body): Json<CreateSplash>) -> Response {
+    let auth = match get_basic_auth_from_headers(&headers) {
+        Some(auth) => auth,
+        None => return StatusCode::UNAUTHORIZED.into_response(),
+    };
+    match validate_password_hash_from_basic_auth(&auth) {
+        StatusCode::OK => (),
+        code => return code.into_response(),
+    };
+
+    let ulid = Ulid::new().to_string();
+    let conn = database::initialise_sqlite_connection();
+    let query = "INSERT INTO splashes VALUES (:id, :splash)";
+
+    let mut statement = conn.prepare(query).unwrap();
+    statement.bind((":id", ulid.as_str())).unwrap();
+    statement.bind((":splash", body.splash.as_str())).unwrap();
+
+    match statement.next() {
+        Ok(_) => {
+            let s = Splash {
+                id: ulid,
+                splash: body.splash,
+            };
+            return Json(s).into_response();
+        }
+        Err(e) => {
+            error!("Returned 500 in POST /splashes due to error: {e}");
+            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
         }
     }
 }
