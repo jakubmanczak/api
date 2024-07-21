@@ -6,7 +6,7 @@ use axum::{
     extract::{Path, Query},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
-    routing::{delete, get, post},
+    routing::{delete, get, patch, post},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
@@ -24,6 +24,8 @@ pub fn route() -> Router {
         .route("/splashes", post(splashes_post))
         // DELETE
         .route("/splashes/:id", delete(splashes_id_delete))
+        // PATCH
+        .route("/splashes/:id", patch(splashes_id_patch))
 }
 
 pub static NO_SPLASHES: &str = "No splashes found.";
@@ -200,6 +202,35 @@ async fn splashes_id_delete(headers: HeaderMap, Path(id): Path<String>) -> Respo
         Ok(_) => return StatusCode::OK.into_response(),
         Err(e) => {
             error!("Returned 500 in DELETE /splashes/:id due to error: {e}");
+            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+        }
+    }
+}
+
+async fn splashes_id_patch(
+    headers: HeaderMap,
+    Path(id): Path<String>,
+    Json(body): Json<CreateSplash>,
+) -> Response {
+    let auth = match get_basic_auth_from_headers(&headers) {
+        Some(auth) => auth,
+        None => return StatusCode::UNAUTHORIZED.into_response(),
+    };
+    match validate_password_hash_from_basic_auth(&auth) {
+        StatusCode::OK => (),
+        code => return code.into_response(),
+    }
+
+    let conn = database::initialise_sqlite_connection();
+    let query = "UPDATE splashes SET splash = :splash WHERE id = :id";
+    let mut statement = conn.prepare(query).unwrap();
+    statement.bind((":id", id.as_str())).unwrap();
+    statement.bind((":splash", body.splash.as_str())).unwrap();
+
+    match statement.next() {
+        Ok(_) => return StatusCode::OK.into_response(),
+        Err(e) => {
+            error!("Returned 500 in PATCH /splashes/:id due to error: {e}");
             return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
         }
     }
