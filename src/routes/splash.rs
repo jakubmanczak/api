@@ -20,6 +20,7 @@ pub fn route() -> Router {
         .route("/splash", get(splash))
         .route("/splashes", get(splashes))
         .route("/splashes/:id", get(splashes_id))
+        .route("/splashes/count", get(splashes_count))
         // POST
         .route("/splashes", post(splashes_post))
         // DELETE
@@ -140,6 +141,27 @@ async fn splashes() -> Response {
                 error!("Returned 500 in GET /splashes due to error: {e}");
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
+        }
+    }
+}
+
+async fn splashes_count() -> Response {
+    let conn = database::initialise_sqlite_connection();
+    let query = "SELECT COUNT(*) FROM splashes";
+    let mut statement = conn.prepare(query).unwrap();
+
+    match statement.next() {
+        Ok(State::Row) => {
+            let count: String = statement.read(0).unwrap();
+            return count.into_response();
+        }
+        Ok(_) => {
+            error!("Unreachable match encountered in GET /splashes/count!");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+        Err(e) => {
+            error!("Returned 500 in GET /splashes/count due to error: {e}");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     }
 }
