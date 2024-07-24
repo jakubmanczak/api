@@ -11,9 +11,12 @@ pub struct BasicAuth {
 }
 
 pub fn get_basic_auth_from_headers(headers: &HeaderMap) -> Option<BasicAuth> {
-    let auth = match headers.contains_key(AUTHORIZATION) {
+    let encoded = match headers.contains_key(AUTHORIZATION) {
         true => match String::from_utf8(headers.get(AUTHORIZATION).unwrap().as_bytes().to_vec()) {
-            Ok(str) => str,
+            Ok(authstr) => match authstr.strip_prefix("Basic ") {
+                Some(stripped) => stripped.to_string(),
+                None => return None,
+            },
             Err(e) => {
                 let msg = "Failed to parse string from AUTHORIZATION header!";
                 error!(
@@ -25,21 +28,16 @@ pub fn get_basic_auth_from_headers(headers: &HeaderMap) -> Option<BasicAuth> {
         },
         false => return None,
     };
-    let auth = match auth.strip_prefix("Basic ") {
-        Some(auth) => auth,
-        None => return None,
-    };
-    let decoded = match general_purpose::STANDARD.decode(auth) {
-        Ok(decoded) => decoded,
+    let decoded = match general_purpose::STANDARD.decode(encoded) {
+        Ok(vector) => match String::from_utf8(vector) {
+            Ok(string) => string,
+            Err(e) => {
+                error!("could not parse decoded bytes from string: {e}");
+                return None;
+            }
+        },
         Err(e) => {
             error!("could not decode base64 auth: {e}");
-            return None;
-        }
-    };
-    let decoded = match String::from_utf8(decoded) {
-        Ok(decoded) => decoded,
-        Err(e) => {
-            error!("could not parse decoded bytes to string: {e}");
             return None;
         }
     };
