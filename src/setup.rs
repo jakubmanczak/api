@@ -1,3 +1,4 @@
+use std::env::VarError;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use tokio::net::TcpListener;
 use tracing::Level;
@@ -28,13 +29,22 @@ pub fn initialise_dotenv() {
 fn get_port() -> u16 {
     let portstr = match std::env::var("PORT") {
         Ok(port) => port,
-        Err(_) => "2004".to_owned(),
+        Err(e) => match e {
+            VarError::NotPresent => {
+                trace!("PORT environment variable not found");
+                return 2004;
+            }
+            _ => {
+                error!("{e}");
+                panic!();
+            }
+        },
     };
 
     match portstr.parse() {
         Ok(num) => num,
         Err(e) => {
-            error!("error while parsing environment variable PORT from str to u16: {e}");
+            error!("error while parsing environment variable PORT: {e}");
             panic!();
         }
     }
