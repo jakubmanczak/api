@@ -1,6 +1,6 @@
 use crate::{
     auth::{get_basic_auth_from_headers, validate_password_hash_from_basic_auth},
-    database,
+    db,
 };
 use axum::{
     extract::{Path, Query},
@@ -52,7 +52,7 @@ struct SplashGetParams {
 }
 
 async fn splash(Query(params): Query<SplashGetParams>) -> Response {
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let mut statement = match params.exclude_id {
         Some(eid) => {
             let eid = eid.as_str();
@@ -99,7 +99,7 @@ async fn splash(Query(params): Query<SplashGetParams>) -> Response {
 }
 
 async fn splashes_id(Path(id): Path<String>) -> Response {
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let query = "SELECT * FROM splashes WHERE id = :id";
     let mut statement = conn.prepare(query).unwrap();
     statement.bind((":id", id.as_str())).unwrap();
@@ -121,7 +121,7 @@ async fn splashes_id(Path(id): Path<String>) -> Response {
 }
 
 async fn splashes() -> Response {
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let query = "SELECT * FROM splashes LIMIT :limit";
     let mut statement = conn.prepare(query).unwrap();
     statement.bind((":limit", 200)).unwrap();
@@ -146,7 +146,7 @@ async fn splashes() -> Response {
 }
 
 async fn splashes_count() -> Response {
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let query = "SELECT COUNT(*) FROM splashes";
     let mut statement = conn.prepare(query).unwrap();
 
@@ -182,7 +182,7 @@ async fn splashes_post(headers: HeaderMap, Json(body): Json<CreateSplash>) -> Re
     };
 
     let ulid = Ulid::new().to_string();
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let query = "INSERT INTO splashes VALUES (:id, :splash)";
 
     let mut statement = conn.prepare(query).unwrap();
@@ -214,7 +214,7 @@ async fn splashes_id_delete(headers: HeaderMap, Path(id): Path<String>) -> Respo
         code => return code.into_response(),
     }
 
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let query = "DELETE FROM splashes WHERE id = :id";
 
     let mut statement = conn.prepare(query).unwrap();
@@ -243,7 +243,7 @@ async fn splashes_id_patch(
         code => return code.into_response(),
     }
 
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let query = "UPDATE splashes SET splash = :splash WHERE id = :id";
     let mut statement = conn.prepare(query).unwrap();
     statement.bind((":id", id.as_str())).unwrap();

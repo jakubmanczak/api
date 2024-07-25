@@ -1,7 +1,8 @@
-use std::env;
-
 use sqlite::Connection;
+use std::env;
 use tracing::error;
+
+mod tables;
 
 pub fn initialise_sqlite_connection() -> Connection {
     let path = match env::var("DBPATH") {
@@ -19,20 +20,10 @@ pub fn initialise_sqlite_connection() -> Connection {
 }
 
 pub fn execute_migration_queries() {
+    use tables::*;
+
     let conn = initialise_sqlite_connection();
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS splashes (
-                id      TEXT NOT NULL UNIQUE PRIMARY KEY,
-                splash  TEXT NOT NULL
-            )",
-    )
-    .unwrap();
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS users (
-                id      TEXT NOT NULL UNIQUE PRIMARY KEY,
-                name    TEXT NOT NULL UNIQUE,
-                pass    TEXT NOT NULL
-        )",
-    )
-    .unwrap();
+    for query in [USERS, SPLASHES] {
+        conn.execute(query).unwrap();
+    }
 }

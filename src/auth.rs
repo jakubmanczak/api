@@ -3,7 +3,7 @@ use base64::{engine::general_purpose, Engine as _};
 use sqlite::State;
 use tracing::error;
 
-use crate::database;
+use crate::db;
 
 pub struct BasicAuth {
     pub username: String,
@@ -55,7 +55,7 @@ pub fn get_basic_auth_from_headers(headers: &HeaderMap) -> Option<BasicAuth> {
 }
 
 pub fn validate_password_hash_from_basic_auth(auth: &BasicAuth) -> StatusCode {
-    let conn = database::initialise_sqlite_connection();
+    let conn = db::initialise_sqlite_connection();
     let query = "SELECT pass FROM users WHERE name = :name";
     let mut statement = conn.prepare(query).unwrap();
     statement.bind((":name", auth.username.as_str())).unwrap();

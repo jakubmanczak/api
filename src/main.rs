@@ -1,5 +1,5 @@
 mod auth;
-mod database;
+mod db;
 mod routes;
 mod setup;
 use axum::Router;
@@ -12,7 +12,7 @@ use tracing::{error, info};
 async fn main() {
     setup::initialise_logging();
     setup::initialise_dotenv();
-    database::execute_migration_queries();
+    db::execute_migration_queries();
 
     let app = Router::new()
         .merge(routes())
