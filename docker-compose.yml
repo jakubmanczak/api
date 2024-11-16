@@ -1,0 +1,10 @@
+services:
+  service:
+    build: .
+    ports:
+      - "2004:2004"
+    restart: always
+    volumes:
+      - data:/sqlite
+volumes:
+  data:
